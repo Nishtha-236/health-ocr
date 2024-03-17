@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AboutUs from './components/About';
 
 import Dashboard from './components/Dashboard';
+import Form from './components/Form';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
 import useToken from './useToken';
@@ -32,7 +33,7 @@ function App() {
             }
           />
           <Route path="/about" element={<AboutUs />} />
-          <Route path="/form" element={<h1>Form</h1>} />
+          <Route path="/form" element={<Form />} />
         </Routes>
       </div>
     </BrowserRouter>
