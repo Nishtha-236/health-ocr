@@ -1,0 +1,56 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:15
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: changeMePlease
+      POSTGRES_USER: test_user
+      POSTGRES_DB: test_db
+    command:
+      - 'postgres'
+      - '-c'
+      - 'log_statement=all'
+    volumes:
+      # - ./services/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+  
+  ehrbase:
+    image: tornadoalert/ehrbase
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/test_db
+      - SPRING_DATASOURCE_USERNAME=test_user
+      - SPRING_DATASOURCE_PASSWORD=changeMePlease
+      - SPRING_DATASOURCE_MAX_ACTIVE=20
+      - SERVER_AQLCONFIG_USEJSQUERY=false
+      - SERVER_NODENAME=ehrbase
+      - SECURITY_AUTHTYPE=NONE
+      - WEB_CORS_ALLOWEDORIGINPATTERNS=*
+      - WEB_CORS_ALLOWEDMETHODS=GET,PUT,DELETE,POST,OPTIONS
+      - WEB_CORS_ALLOWCREDENTIALS=true
+      - ADMINAPI_ACTIVE=true
+      - ADMINAPI_ALLOWDELETEALL=true
+      - DB_USER_ADMIN=test_user
+      - DB_PASS_ADMIN=changeMePlease
+    restart: on-failure
+    ports:
+      - 8080:8080
+
+  ehrbase-migrate:
+    image: postgres:15
+    command:
+      - psql
+      - -f
+      - /migrate.sql
+    environment:
+      - PGUSER=test_user
+      - PGPASSWORD=changeMePlease
+      - PGDATABASE=test_db
+      - PGHOST=postgres
+    volumes:
+      - ./createdb.sql:/migrate.sql
+    restart: on-failure
+
+volumes:
+  pgdata:

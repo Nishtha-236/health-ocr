@@ -1,17 +1,81 @@
 import React from "react";
 import "medblocks-ui";
 import "medblocks-ui/dist/styles.js";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { allCompositions, doAql, getUID } from "./aql";
+import axios from "axios";
 
 export default function Form() {
   let form = React.useRef();
+  const [loading, setLoading] = React.useState("false");
+  let navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const compositionId = searchParams.get("c");
+  // const { id } = useParams();
+  let id = "2ea2138d-e907-4832-ae2b-08829c21ffd7";
+  let templateId = "tip2toe.v0";
+  let encounterId = "2ea2138d-e907-4832-ae2b-08829c21ffd7";
+  // console.log({ id, compositionId });
+  let composer_name = "Nishtha";
+  let openehrUrl = "http://localhost:8080";
+  // let hermesUrl = "https://hermes-2-kbsdxvq3bq-el.a.run.app/v1";
+  const openehr = axios.create({
+    baseURL: `${openehrUrl}/ehrbase/rest`,
+    withCredentials: true,
+  });
+
+
+  React.useEffect(() => {
+    doAql(allCompositions(id), openehr).then((res) => {
+      // console.log({ Data: res });
+      // setDailyData(res);
+    });
+  }, []);
 
   const handleSubmit = async (e) => {
     const data = e.detail;
-    console.log("Form submitted", { data });
+    setLoading(true);
+    console.log("Form submitted");
+    console.log({ data });
+    try {
+      if (compositionId) {
+        const r = await openehr.put(
+          `/ecis/v1/composition/${compositionId.split(":")[0]}`,
+          data,
+          {
+            params: { format: "FLAT", templateId, ehrId: id },
+          }
+        );
+      } else {
+        const r = await openehr.post("/ecis/v1/composition?templateId=" + templateId + "&ehrId=" + id + "&format=FLAT", data);
+        // console.log(r);
+        setLoading("success");
+        if(r.status==201){
+          console.log("Composition created successfully")
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      setLoading("failed");
+    }
+    setTimeout(() => {
+      setLoading("false");
+    }, 2000);
   };
 
   React.useEffect(() => {
     form.current.addEventListener("mb-submit", handleSubmit);
+    form.current.ctx = {
+      composer: {
+        name: composer_name,
+      },
+      health_care_facility: {
+        name: "Project",
+        id: encounterId,
+        id_scheme: "Project",
+        id_namespace: "Project",
+      },
+    };
   }, []);
   return (
     <div className="p-10 m-10">
@@ -19,25 +83,12 @@ export default function Form() {
         ref={form}
         class="flex flex-col gap-3 p-5 shadow-2xl rounded-lg border font-bold"
       >
-        <mb-duration
-          year
-          month
-          day
-          path="tip2toe.v0/context/mother:0/age_at_time_of_referral"
-          label="Mother Age at time of referral"
-        ></mb-duration>
-        <mb-duration
-          year
-          month
-          day
-          path="tip2toe.v0/context/father/age_at_time_of_referral"
-          label="Father Age at time of referral"
-        ></mb-duration>
+        
         <mb-context path="tip2toe.v0/context/start_time"></mb-context>
         <mb-context path="tip2toe.v0/context/setting"></mb-context>
         <mb-select
           path="tip2toe.v0/vital_status/point_in_time_event:0/vital_status"
-          label="Vital status"
+          label="Patient Vital status"
           terminology="local"
         >
           <mb-option value="at0005" label="Alive"></mb-option>
@@ -48,6 +99,24 @@ export default function Form() {
         <mb-context path="tip2toe.v0/vital_status/language"></mb-context>
         <mb-context path="tip2toe.v0/vital_status/encoding"></mb-context>
         <mb-context path="tip2toe.v0/vital_status/subject"></mb-context>
+
+        {/* <mb-duration
+          year
+          month
+          day
+          path="tip2toe.v0/context/mother:0/age_at_time_of_referral"
+          label="Mother's age at time of referral"
+        ></mb-duration>
+        <mb-duration
+          year
+          month
+          day
+          path="tip2toe.v0/context/father/age_at_time_of_referral"
+          label="Father's age at time of referral"
+        ></mb-duration> */}
+
+        <hr />
+        <div className="text-2xl font-bold mb-3">Family History</div>
         <mb-input
           path="tip2toe.v0/family_history/summary"
           label="Summary"
@@ -91,6 +160,7 @@ export default function Form() {
           <mb-option value="at0040" label="Maternal line"></mb-option>
           <mb-option value="at0041" label="Paternal line"></mb-option>
         </mb-select>
+        <div className="text-md mt-4">Pedigree (family tree)</div>
         <mb-multimedia
           path="tip2toe.v0/family_history/pedigree:0/content"
           label="Content"
@@ -98,6 +168,7 @@ export default function Form() {
         <mb-context path="tip2toe.v0/family_history/language"></mb-context>
         <mb-context path="tip2toe.v0/family_history/encoding"></mb-context>
         <mb-context path="tip2toe.v0/family_history/subject"></mb-context>
+        <div className="text-md mt-4">Previous growth charts</div>
         <mb-multimedia
           path="tip2toe.v0/growth_velocity/current_and_previous_growth_charts:0/content"
           label="Content"
@@ -107,10 +178,13 @@ export default function Form() {
         <mb-context path="tip2toe.v0/growth_velocity/language"></mb-context>
         <mb-context path="tip2toe.v0/growth_velocity/encoding"></mb-context>
         <mb-context path="tip2toe.v0/growth_velocity/subject"></mb-context>
+
+        <hr />
+        <div className="text-2xl font-bold mb-3">Birth Summary</div>
         <mb-duration
           week
           path="tip2toe.v0/birth_summary/birth_detail/gestational_age"
-          label="Gestational age"
+          label="Gestational age (how far along the pregnancy is)"
         ></mb-duration>
         <mb-input
           path="tip2toe.v0/birth_summary/comment"
@@ -118,21 +192,21 @@ export default function Form() {
         ></mb-input>
         <mb-context path="tip2toe.v0/birth_summary/language"></mb-context>
         <mb-context path="tip2toe.v0/birth_summary/encoding"></mb-context>
-        <mb-context path="tip2toe.v0/birth_summary/subject"></mb-context>
+            <mb-context path="tip2toe.v0/birth_summary/subject"></mb-context>
         <mb-quantity
           default="kg"
           path="tip2toe.v0/body_weight/weight_at_the_last_visit:0/weight"
-          label="Weight"
+          label="Weight at the last visit"
         >
           <mb-unit unit="kg" label="kg" min="" max="1000"></mb-unit>
           <mb-unit unit="[lb_av]" label="[lb_av]" min="" max="2000"></mb-unit>
           <mb-unit unit="g" label="g" min="" max="1000000"></mb-unit>
         </mb-quantity>
-        <mb-context path="tip2toe.v0/body_weight/weight_at_the_last_visit:0/time"></mb-context>
+            <mb-context path="tip2toe.v0/body_weight/weight_at_the_last_visit:0/time"></mb-context>
         <mb-quantity
           default="kg"
           path="tip2toe.v0/body_weight/birth/weight"
-          label="Weight"
+          label="Birth weight"
         >
           <mb-unit unit="kg" label="kg" min="" max="1000"></mb-unit>
           <mb-unit unit="[lb_av]" label="[lb_av]" min="" max="2000"></mb-unit>
@@ -145,7 +219,7 @@ export default function Form() {
         <mb-quantity
           default="cm"
           path="tip2toe.v0/height_length/length_at_the_last_visit:0/height_length"
-          label="Height/Length"
+          label="Height/Length at the last visit"
         >
           <mb-unit unit="cm" label="cm" min="" max="1000"></mb-unit>
           <mb-unit unit="[in_i]" label="[in_i]" min="" max="250"></mb-unit>
@@ -154,7 +228,7 @@ export default function Form() {
         <mb-quantity
           default="cm"
           path="tip2toe.v0/height_length/birth/height_length"
-          label="Height/Length"
+          label="Birth height/length"
         >
           <mb-unit unit="cm" label="cm" min="" max="1000"></mb-unit>
           <mb-unit unit="[in_i]" label="[in_i]" min="" max="250"></mb-unit>
@@ -166,7 +240,7 @@ export default function Form() {
         <mb-quantity
           default="cm"
           path="tip2toe.v0/head_circumference/head_circumference_at_the_last_visit:0/head_circumference"
-          label="Head circumference"
+          label="Head circumference at the last visit"
         >
           <mb-unit unit="cm" label="cm" min="" max="100"></mb-unit>
           <mb-unit unit="[in_i]" label="[in_i]" min="" max="40"></mb-unit>
@@ -175,7 +249,7 @@ export default function Form() {
         <mb-quantity
           default="cm"
           path="tip2toe.v0/head_circumference/birth/head_circumference"
-          label="Head circumference"
+          label="Head circumference at birth"
         >
           <mb-unit unit="cm" label="cm" min="" max="100"></mb-unit>
           <mb-unit unit="[in_i]" label="[in_i]" min="" max="40"></mb-unit>
@@ -184,6 +258,9 @@ export default function Form() {
         <mb-context path="tip2toe.v0/head_circumference/language"></mb-context>
         <mb-context path="tip2toe.v0/head_circumference/encoding"></mb-context>
         <mb-context path="tip2toe.v0/head_circumference/subject"></mb-context>
+
+        <hr />
+        <div className="text-2xl font-bold mb-3">Imaging examination result</div>
         <mb-input
           path="tip2toe.v0/imaging_examination_result/any_event:0/test_name"
           label="Test name"
@@ -198,7 +275,7 @@ export default function Form() {
         <mb-context path="tip2toe.v0/imaging_examination_result/subject"></mb-context>
         <mb-input
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/test_name"
-          label="Test name"
+          label="Previous genetic investigations test name"
         ></mb-input>
         <mb-select
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/previous_genetic_investigations/karyotyping"
@@ -208,11 +285,11 @@ export default function Form() {
           <mb-option value="at0002" label="Yes"></mb-option>
           <mb-option value="at0003" label="No"></mb-option>
         </mb-select>
-        <mb-select
+        {/* <mb-select
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/previous_genetic_investigations/karyotype"
           label="Karyotype"
           terminology="local"
-        ></mb-select>
+        ></mb-select> */}
         <mb-select
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/previous_genetic_investigations/fish"
           label="FISH"
@@ -221,22 +298,22 @@ export default function Form() {
           <mb-option value="at0006" label="Yes"></mb-option>
           <mb-option value="at0007" label="No"></mb-option>
         </mb-select>
-        <mb-select
+        {/* <mb-select
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/previous_genetic_investigations/karyotype2"
           label="Karyotype"
           terminology="local"
-        ></mb-select>
-        <mb-select
+        ></mb-select> */}
+        {/* <mb-select
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/previous_genetic_investigations/array_results"
           label="Array Results"
           terminology="local"
-        ></mb-select>
-        <mb-select
+        ></mb-select> */}
+        {/* <mb-select
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/previous_genetic_investigations/targeted_sequencing_variants"
           label="Targeted sequencing variants"
           terminology="local"
-        ></mb-select>
-        <mb-select
+        ></mb-select> */}
+        {/* <mb-select
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/previous_genetic_investigations/wes_panels_trios_variants"
           label="WES panels/trios variants"
           terminology="local"
@@ -245,14 +322,14 @@ export default function Form() {
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/previous_genetic_investigations/wgs_panels_trios_variants"
           label="WGS panels/trios variants"
           terminology="local"
-        ></mb-select>
+        ></mb-select> */}
         <mb-multimedia
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/media_file:0/content"
           label="Content"
         ></mb-multimedia>
         <mb-select
           path="tip2toe.v0/previous_genetic_investigations/any_event:0/media_file:0/content_name"
-          label="Content name"
+          label="Previous genetic investigations content name"
           terminology="local_terms"
         >
           <mb-option value="1" label="Array"></mb-option>
@@ -266,8 +343,9 @@ export default function Form() {
         <mb-context path="tip2toe.v0/previous_genetic_investigations/subject"></mb-context>
         <mb-input
           path="tip2toe.v0/laboratory_test_result/any_event:0/test_name"
-          label="Test name"
+          label="Laboratory test result test name"
         ></mb-input>
+        <div className="text-md mt-4">Results</div>
         <mb-multimedia
           path="tip2toe.v0/laboratory_test_result/any_event:0/media_file:0/content"
           label="Content"
@@ -276,6 +354,9 @@ export default function Form() {
         <mb-context path="tip2toe.v0/laboratory_test_result/language"></mb-context>
         <mb-context path="tip2toe.v0/laboratory_test_result/encoding"></mb-context>
         <mb-context path="tip2toe.v0/laboratory_test_result/subject"></mb-context>
+
+        <hr />
+        <div className="text-2xl font-bold mb-3">This is me</div>
         <mb-input
           path="tip2toe.v0/this_is_me/my_care_givers_are"
           label="My care givers are"
@@ -317,10 +398,14 @@ export default function Form() {
         <mb-context path="tip2toe.v0/this_is_me/language"></mb-context>
         <mb-context path="tip2toe.v0/this_is_me/encoding"></mb-context>
         <mb-context path="tip2toe.v0/this_is_me/subject"></mb-context>
+
+        <hr />
+        <div className="text-2xl font-bold mb-3">Clinical findings</div>
         <mb-input
           path="tip2toe.v0/clinical_findings/synopsis"
-          label="Synopsis"
+          label="Synopsis" 
         ></mb-input>
+        <div className="text-md mt-4">Media file</div>
         <mb-multimedia
           path="tip2toe.v0/clinical_findings/media_file:0/content"
           label="Content"
@@ -361,14 +446,18 @@ export default function Form() {
         <mb-context path="tip2toe.v0/clinical_findings/language"></mb-context>
         <mb-context path="tip2toe.v0/clinical_findings/encoding"></mb-context>
         <mb-context path="tip2toe.v0/clinical_findings/subject"></mb-context>
+        
+        <hr />
+        <div className="text-2xl font-bold mb-3">Symptom sign screening questionnaire</div>
         <mb-date
           time
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/onset_of_any_symptoms_or_signs"
           label="Onset of any symptoms or signs"
-        ></mb-date>
+            ></mb-date>
+
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/pregnancy:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Pregnancy Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0001562" label="Oligohydramnios"></mb-option>
@@ -438,7 +527,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/pregnancy:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -447,7 +536,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/delivery:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Delivery Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0001787" label="Abnormal delivery"></mb-option>
@@ -464,7 +553,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/delivery:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -473,7 +562,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/neonatal_period_complications:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Neonatal Period Complications Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -506,7 +595,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/neonatal_period_complications:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -515,7 +604,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/growth_at_birth:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Growth at Birth Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -537,7 +626,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/growth_at_birth:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -546,7 +635,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/post_natal_growth:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Post Natal Growth Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -576,7 +665,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/post_natal_growth:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -585,7 +674,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/facial_morphology:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Facial Morphology Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -647,7 +736,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/facial_morphology:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -660,7 +749,7 @@ export default function Form() {
         ></mb-input>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/eyes:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Eyes Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -700,7 +789,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/eyes:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -709,7 +798,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/mouth_teeth:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Mouth/Teeth Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -747,7 +836,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/mouth_teeth:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -756,7 +845,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/nose:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Nose Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -766,7 +855,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/nose:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -775,7 +864,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/ears:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Ears Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -796,7 +885,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/ears:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -805,7 +894,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/central_nervous_system_neuromuscular_system_cognition:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Central Nervous System/Neuromuscular System/Cognition Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -847,7 +936,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/central_nervous_system_neuromuscular_system_cognition:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -856,7 +945,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/behavioral_abnormality:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Behavioral Abnormality Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0000729" label="Autistic behavior"></mb-option>
@@ -872,7 +961,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/behavioral_abnormality:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -881,7 +970,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/speech:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Speech Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -893,7 +982,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/speech:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -902,7 +991,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/seizures:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Seizures Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0001250" label="Seizure"></mb-option>
@@ -916,7 +1005,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/seizures:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -925,7 +1014,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/muscles:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Muscles Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -953,7 +1042,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/muscles:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -962,14 +1051,14 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/skeleton:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Skeleton Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0002652" label="Skeletal dysplasia"></mb-option>
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/skeleton:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -978,7 +1067,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/head_and_neck:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Head and Neck Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0000929" label="Abnormal skull"></mb-option>
@@ -992,7 +1081,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/head_and_neck:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1001,7 +1090,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/trunk:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Trunk Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1033,7 +1122,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/trunk:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1042,7 +1131,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/upper_limbs:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Upper Limbs Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1064,7 +1153,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/upper_limbs:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1073,7 +1162,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/hands_fingers_and_thumbs:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Hands, Fingers and Thumbs Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1116,7 +1205,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/hands_fingers_and_thumbs:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1125,7 +1214,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/lower_limb:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Lower Limb Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1147,7 +1236,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/lower_limb:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1156,7 +1245,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/feet_toes:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Feet and Toes Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1190,7 +1279,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/feet_toes:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1199,7 +1288,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/airways:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Airways Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1227,7 +1316,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/airways:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1236,7 +1325,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/heart_great_vessels:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Heart and Great Vessels Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1266,7 +1355,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/heart_great_vessels:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1275,7 +1364,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/kidney_and_urinary_tract:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Kidney and Urinary Tract Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1296,7 +1385,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/kidney_and_urinary_tract:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1305,7 +1394,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/genitalia:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Genitalia Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1326,7 +1415,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/genitalia:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1335,7 +1424,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/liver_and_spleen:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Liver and Spleen Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1356,7 +1445,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/liver_and_spleen:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1365,7 +1454,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/skin:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Skin Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1411,7 +1500,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/skin:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1420,7 +1509,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/hair_nails:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Hair and Nails Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1443,7 +1532,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/hair_nails:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1452,7 +1541,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/endocrine_metabolic:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Endocrine and Metabolic Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0000819" label="Diabetes mellitus"></mb-option>
@@ -1486,7 +1575,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/endocrine_metabolic:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1495,7 +1584,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/connective_tissue:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Connective Tissue Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0001382" label="Joint hypermobility"></mb-option>
@@ -1520,7 +1609,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/connective_tissue:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1529,7 +1618,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/immune_system_blood:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Immune System and Blood Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1551,7 +1640,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/immune_system_blood:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1560,7 +1649,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/gastrointestinal:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Gastrointestinal Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option value="HP:0002608" label="Celiac disease"></mb-option>
@@ -1583,7 +1672,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/gastrointestinal:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
@@ -1592,7 +1681,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/cancer_malignancy_benign_tumor:0/symptom_or_sign_name"
-          label="Symptom or sign name"
+          label="Cancer, Malignancy, or Benign Tumor Symptom or sign name"
           terminology="local_terms"
         >
           <mb-option
@@ -1606,7 +1695,7 @@ export default function Form() {
         </mb-select>
         <mb-select
           path="tip2toe.v0/symptom_sign_screening_questionnaire/any_event:0/cancer_malignancy_benign_tumor:0/presence"
-          label="Presence?"
+          label="Symptom Presence?"
           terminology="local"
         >
           <mb-option value="at0023" label="Yes"></mb-option>
