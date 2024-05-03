@@ -22,7 +22,7 @@ export const formatAql = (aqlResultData) => {
         c/archetype_details/template_id/value as ctx_template_id,
         c/composer/name as composer_name
         from EHR e CONTAINS COMPOSITION c
-        WHERE e/ehr_id/value='${ehrId}' AND c/archetype_details/template_id/value='hospital.notes.v0'
+        WHERE e/ehr_id/value='${ehrId}' AND c/archetype_details/template_id/value='health.ocr.v0'
         LIMIT 10 ORDER BY time DESC
       `;
   };
@@ -33,7 +33,7 @@ export const formatAql = (aqlResultData) => {
         c/archetype_details/template_id/value as ctx_template_id,
         c/composer/name as composer_name
         from EHR e CONTAINS COMPOSITION c
-        WHERE e/ehr_id/value='${ehrId}' AND c/archetype_details/template_id/value='ubiqare.vitals.v0'
+        WHERE e/ehr_id/value='${ehrId}' AND c/archetype_details/template_id/value='health.ocr.v0'
         LIMIT 10 ORDER BY time DESC
       `;
   };
@@ -44,7 +44,7 @@ export const formatAql = (aqlResultData) => {
         c/archetype_details/template_id/value as ctx_template_id,
         c/composer/name as composer_name
         from EHR e CONTAINS COMPOSITION c
-        WHERE e/ehr_id/value='${ehrId}' AND c/archetype_details/template_id/value='ubiqare.symptoms.v0'
+        WHERE e/ehr_id/value='${ehrId}' AND c/archetype_details/template_id/value='health.ocr.v0'
         LIMIT 10 ORDER BY time DESC
       `;
   };
