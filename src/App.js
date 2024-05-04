@@ -6,7 +6,9 @@ import Dashboard from './components/Dashboard';
 import Form from './components/Form';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
+
 import useToken from './useToken';
+import FileUpload from './components/FileUpload';
 
 function App() {
   const { token, setToken } = useToken();
@@ -34,6 +36,7 @@ function App() {
           />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/form" element={<Form />} />
+          <Route path="/upload" element={<FileUpload />} />
         </Routes>
       </div>
     </BrowserRouter>
