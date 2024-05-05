@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AboutUs from './components/About';
+import analytics from './components/analytics';
 
 import Dashboard from './components/Dashboard';
 import Form from './components/Form';
