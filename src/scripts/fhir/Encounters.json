@@ -1,0 +1,61 @@
+{
+	"resourceType": "Bundle",
+	"type": "transaction",
+	"entry": [
+		{
+			"request": {
+				"method": "PUT",
+				"url": "Encounter/85061baf-4d9c-5447-bc14-d5791e24f009"
+			},
+			"resource": {
+				"resourceType": "Encounter",
+				"id": "85061baf-4d9c-5447-bc14-d5791e24f009",
+				"identifier": [
+					{
+						"system": "http://test/fhir/encounter_id",
+						"value": "123456"
+					}
+				],
+				"status": "in-progress",
+				"class": {
+					"system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+					"code": "AMB",
+					"display": "ambulatory"
+				},
+				"subject": {
+					"reference": "Patient/4cc155f7-0ea9-5b56-acb2-5a82f51c042a"
+				},
+				"period": {
+					"start": "2024-05-01T00:00:00Z"
+				}
+			}
+		},
+		{
+			"request": {
+				"method": "PUT",
+				"url": "Encounter/c9c2da95-994a-5365-972a-8b292d695f28"
+			},
+			"resource": {
+				"resourceType": "Encounter",
+				"id": "c9c2da95-994a-5365-972a-8b292d695f28",
+				"identifier": [
+					{
+						"system": "http://test/fhir/encounter_id",
+						"value": "678901"
+					}
+				],
+				"status": "in-progress",
+				"class": {
+					"system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+					"code": "AMB",
+					"display": "ambulatory"
+				},
+				"subject": {
+					"reference": "Patient/4cc155f7-0ea9-5b56-acb2-5a82f51c042a"
+				},
+				"period": {
+					"start": "2024-05-01T00:00:00Z"
+				}
+			}
+		}	]
+}

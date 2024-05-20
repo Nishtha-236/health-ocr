@@ -52,5 +52,23 @@ services:
       - ./createdb.sql:/migrate.sql
     restart: on-failure
 
+  fhir:
+    image: hapiproject/hapi:v6.2.2
+    depends_on:
+      - postgres
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/test_db
+      - SPRING_DATASOURCE_USERNAME=test_user
+      - SPRING_DATASOURCE_PASSWORD=changeMePlease
+      - SPRING_DATASOURCE_DRIVERCLASSNAME=org.postgresql.Driver
+      - spring.jpa.properties.hibernate.dialect=ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+      - spring.datasource.max-active=20
+      - hapi.fhir.subscription.resthook_enabled=true
+      - hapi.fhir.client_id_strategy=ANY
+      - hapi.fhir.subscription.websocket_enabled=true
+      - mdm_enabled=true
+      - cors_allowed_origin=*
+    ports:
+      - 8081:8080
 volumes:
   pgdata:

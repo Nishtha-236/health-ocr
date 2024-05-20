@@ -84,7 +84,7 @@ export default function Form() {
     };
   }, []);
   return (
-    <div className="p-10 m-10">
+    <div className="p-10">
       <mb-form
         ref={form}
         class="flex flex-col gap-3 p-5 shadow-2xl rounded-lg border font-bold"

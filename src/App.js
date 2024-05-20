@@ -1,48 +1,73 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import AboutUs from './components/About';
-import analytics from './components/analytics';
-
+import Analytics from './components/Analytics';
 import Dashboard from './components/Dashboard';
 import Form from './components/Form';
+import SignUp from './components/Signup';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
-
-import useToken from './useToken';
 import FileUpload from './components/FileUpload';
+import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
-  const { token, setToken } = useToken();
+import { auth } from './firebase';
 
+const AppContent = () => {
+  const location = useLocation();
   const handleSignout = () => {
-    // Clear the token from local storage or perform any other necessary cleanup
     console.log('Sign out');
-    setToken(null);
+    auth.signOut(); // sign out from Firebase
   };
 
-  if(!token) {
-    return <Login setToken={setToken} />
-  }
   return (
-    <div className="wrapper">
-      <BrowserRouter>
-      <div className="wrapper">
-        <Navbar handleSignout={handleSignout} />
-        <Routes>
-          <Route
-            path="/"
-            element={
-              token ? <Dashboard /> : <Login setToken={setToken} />
-            }
-          />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/form" element={<Form />} />
-          <Route path="/upload" element={<FileUpload />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <>
+      {location.pathname !== '/login' && location.pathname !== '/signup' && <Navbar handleSignout={handleSignout} />}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route
+          path="/form"
+          element={
+            <ProtectedRoute>
+              <Form />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/upload"
+          element={
+            <ProtectedRoute>
+              <FileUpload />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <Analytics />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </>
+  );
+}
 
-    </div>
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 

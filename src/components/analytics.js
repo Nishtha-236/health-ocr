@@ -1,6 +1,112 @@
 import './analytics.css';
+// import Chart from 'chart.js/auto';
 
-export default function analytics(){
+import React from "react";
+import { useEffect, useRef } from 'react';
+import { Chart, registerables } from 'chart.js';
+import 'chartjs-adapter-date-fns';
+Chart.register(...registerables);
+
+export default function Analytics() {
+    const bloodPressureChartContainer = useRef(null);
+    const pulseRateChartContainer = useRef(null);
+
+    useEffect(() => {
+        // Blood Pressure Chart
+        if (bloodPressureChartContainer && bloodPressureChartContainer.current) {
+            const ctx = bloodPressureChartContainer.current.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['29th April 2024, 1:30 PM'],
+                    datasets: [{
+                        label: 'Systolic Blood Pressure',
+                        data: [{
+                            x: '29th April 2024, 1:30 PM',
+                            y: 110
+                        }, {
+                            x: '29th April 2024, 1:30 PM',
+                            y: 78
+                        }],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                parser: 'dd/MM/YYYY, h:mm A',
+                                tooltipFormat: 'lll',
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'DD MMM YYYY'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Blood Pressure'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        // Pulse Rate Chart
+        if (pulseRateChartContainer && pulseRateChartContainer.current) {
+            const ctx = pulseRateChartContainer.current.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['29th April 2024, 1:30 PM'],
+                    datasets: [{
+                        label: 'Pulse Rate',
+                        data: [{
+                            x: '29th April 2024, 1:30 PM',
+                            y: 89
+                        }],
+                        borderColor: 'rgb(255, 99, 132)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                parser: 'dd/MM/YYYY, h:mm A',
+                                tooltipFormat: 'lll',
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'DD MMM YYYY'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Pulse Rate'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }, []);
+
     return(
         <>
         <section class="top">
@@ -19,10 +125,22 @@ export default function analytics(){
         </div>
     </section>
 
+    <section className="bottom">
+                <div className="b-left">
+                    <h3 className="bsp-h blh1">Blood Pressure</h3>
+                    <canvas ref={bloodPressureChartContainer}></canvas>
+                </div>
+                <div className="b-right">
+                    <h3 className="bsp-h brh1">Pulse Rate</h3>
+                    <canvas ref={pulseRateChartContainer}></canvas>
+                </div>
+            </section>
+
+
     <section class="bottom">
         <div class="b-left">
-            <h3 class="bsp-h blh1">Systolic BP</h3>
-            <div class="bl-rec">No past record</div>
+            <h3 class="bsp-h blh1">Blood Pressure</h3>
+            {/* <div class="bl-rec">No past record</div> */}
         </div>
         <div class="b-right">
             <h3 class="bsp-h brh1">Pulse Rate</h3>
