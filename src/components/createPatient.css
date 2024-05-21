@@ -15,7 +15,7 @@ main {
 }
 
 .crt-ptnt {
-  background-color: rgb(235 231 225);
+  background-color: rgb(236, 236, 234);
   width: 40%;
   height: 90%;
   border-radius: 8px;
@@ -23,7 +23,7 @@ main {
   flex-direction: column;
   /* justify-content: center; */
   align-items: center;
-  box-shadow: 7px 7px #bdbdbd;
+  box-shadow: 7px 7px #dfdfdf;
 }
 
 span {
