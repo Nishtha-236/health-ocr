@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 // import { signInWithEmailAndPassword } from "firebase/auth";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-
 import { auth } from "../firebase";
-
+import { useNavigate } from "react-router-dom";
 export default function Signup({ setToken }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate=useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,6 +23,7 @@ export default function Signup({ setToken }) {
       const token = await userCredential.user.getIdToken();
       setToken(token);
       console.log("User registered:", userCredential.user);
+      navigate("/");
     } catch (error) {
       console.error("Error signing in:", { error });
       setError(error.message);
