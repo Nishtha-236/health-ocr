@@ -90,7 +90,7 @@ export default function Dashboard() {
           {data.entry.map((person, index) => (
             <li key={index} className="flex justify-between gap-x-6 py-4">
               <Link
-                to="/form"
+                to= {{pathname: `/form/${person.resource.id}`, state: {users: data.entry}}}
                 className="bg-sky-50 rounded-lg shadow-md flex justify-between w-full p-4"
               >
                 <div className="flex min-w-0 gap-x-4">
