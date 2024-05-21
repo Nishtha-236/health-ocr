@@ -9,6 +9,7 @@ import Login from './components/Login';
 import Navbar from './components/Navbar';
 import FileUpload from './components/FileUpload';
 import ProtectedRoute from './components/ProtectedRoute';
+import CreatePatient from './components/createPatient';
 
 import { auth } from './firebase';
 
@@ -60,7 +61,16 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/createPatient"
+          element={
+            <ProtectedRoute>
+              <CreatePatient />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
+      
     </>
   );
 }
