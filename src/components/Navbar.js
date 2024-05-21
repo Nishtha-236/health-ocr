@@ -15,6 +15,7 @@ const navigation = [
     { name: 'FileUpload', href: '/upload', current: false },
     // { name: 'Analytics', href: '/analytics', current: false },
     { name: 'About', href: '/about', current: false },
+    { name: 'CreatePatient', href: '/createPatient', current: false },
   ];
   
 const userNavigation = [
