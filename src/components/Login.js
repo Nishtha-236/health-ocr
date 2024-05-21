@@ -9,6 +9,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,12 +41,15 @@ export default function Login() {
       sendPasswordResetEmail(auth, email)
         .then(() => {
           console.log("Password reset email sent successfully");
+          setMessage("Password reset email sent successfully.");
         })
         .catch((error) => {
           console.error("Error sending password reset email:", error.message);
+          setError(error.message);
         });
     } catch (error) {
       console.error("Error sending password reset email:", error.message);
+      setError(error.message);
     }
   };
 
@@ -118,6 +122,9 @@ export default function Login() {
             </div>
           </div>
 
+          {error && <div className="text-red-500 text-sm font-bold text-center mt-4">{error}</div>}
+        {message && <div className="text-green-500 text-sm font-bold text-center mt-4">{message}</div>}
+
           <div>
             <button
               type="submit"
@@ -128,8 +135,6 @@ export default function Login() {
           </div>
         </form>
 
-        {/* Display error message if there's an error */}
-        {error && <div className="text-red-500 text-sm">{error}</div>}
       </div>
     </div>
   );

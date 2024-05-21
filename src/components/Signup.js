@@ -94,7 +94,7 @@ export default function Signup({ setToken }) {
             </div>
           </div>
 
-          {error && <div className="text-red-500 text-sm">{error}</div>}
+        {error && <div className="text-red-500 text-sm font-bold text-center mt-4">{error}</div>}
 
           <div>
             <button
