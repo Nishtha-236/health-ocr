@@ -4,8 +4,9 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "../firebase";
-
+import { useNavigate } from "react-router-dom";
 export default function Login() {
+  const navigate=useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -23,6 +24,7 @@ export default function Login() {
       // User is signed in
       const user = userCredential.user;
       console.log("User logged in:", user);
+      navigate("/");
       // You can redirect the user to another page here
     } catch (error) {
       // Handle login errors

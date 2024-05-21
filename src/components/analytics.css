@@ -146,10 +146,11 @@ body {
 .mf-heading {
   width: 100%;
   border-radius: 2px;
-  background-color: rgb(233, 180, 189);
+  /* background-color: rgb(233, 180, 189); */
+  background-color: rgb(132, 173, 250);
   padding: 14px 8px;
   font-weight: 600;
-  color: rgb(102, 102, 102);
+  /* color: rgb(102, 102, 102); */
 }
 
 .mf-h1-text {
