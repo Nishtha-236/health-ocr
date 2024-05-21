@@ -22,6 +22,7 @@ export default function Signup({ setToken }) {
       );
       const token = await userCredential.user.getIdToken();
       setToken(token);
+      console.log("User registered:", userCredential.user);
     } catch (error) {
       console.error("Error signing in:", { error });
       setError(error.message);

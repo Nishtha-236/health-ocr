@@ -1,4 +1,4 @@
-import React from 'react';
+import {React, useState} from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import AboutUs from './components/About';
 import Analytics from './components/Analytics';
@@ -14,6 +14,8 @@ import { auth } from './firebase';
 
 const AppContent = () => {
   const location = useLocation();
+  const [token, setToken] = useState(null);
+
   const handleSignout = () => {
     console.log('Sign out');
     auth.signOut(); // sign out from Firebase
@@ -32,7 +34,7 @@ const AppContent = () => {
           }
         />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signup" element={<SignUp setToken={setToken} />} />
         <Route path="/about" element={<AboutUs />} />
         <Route
           path="/form"
