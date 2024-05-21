@@ -2,20 +2,17 @@ import React from "react";
 import "medblocks-ui";
 import "medblocks-ui/dist/styles.js";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { allCompositions, doAql, getUID } from "./aql";
+import { allCompositions, doAql, getUID } from "./api";
 import axios from "axios";
 
 export default function Form() {
   let form = React.useRef();
   const [loading, setLoading] = React.useState("false");
   let navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const compositionId = searchParams.get("c");
-  // const { id } = useParams();
-  let id = "2ea2138d-e907-4832-ae2b-08829c21ffd7";
+
+  const { id } = useParams();
   let templateId = "health.ocr.v0";
-  let encounterId = "2ea2138d-e907-4832-ae2b-08829c21ffd7";
-  // console.log({ id, compositionId });
+  // let compositionId = uuidv4();
   let composer_name = "Nishtha";
   let openehrUrl = "http://localhost:8080";
   // let hermesUrl = "https://hermes-2-kbsdxvq3bq-el.a.run.app/v1";
@@ -24,28 +21,20 @@ export default function Form() {
     withCredentials: true,
   });
 
-  React.useEffect(() => {
-    doAql(allCompositions(id), openehr).then((res) => {
-      // console.log({ Data: res });
-      // setDailyData(res);
-    });
-  }, []);
+  // React.useEffect(() => {
+  //   // doAql(allCompositions(id), openehr).then((res) => {
+  //   //   // console.log({ Data: res });
+  //   //   // setDailyData(res);
+  //   // });
+  // }, []);
 
   const handleSubmit = async (e) => {
+    e.preventDefault();
     const data = e.detail;
     setLoading(true);
-    console.log("Form submitted");
+    console.log("Form submitted", "EhrId:", id);
     console.log({ data });
     try {
-      if (compositionId) {
-        const r = await openehr.put(
-          `/ecis/v1/composition/${compositionId.split(":")[0]}`,
-          data,
-          {
-            params: { format: "FLAT", templateId, ehrId: id },
-          }
-        );
-      } else {
         const r = await openehr.post(
           "/ecis/v1/composition?templateId=" +
             templateId +
@@ -58,7 +47,8 @@ export default function Form() {
         setLoading("success");
         if (r.status == 201) {
           console.log("Composition created successfully");
-        }
+          console.log("routing to /analytics/" + id);
+          navigate(`/analytics/${id}`);
       }
     } catch (e) {
       console.log(e);
@@ -77,7 +67,7 @@ export default function Form() {
       },
       health_care_facility: {
         name: "Project",
-        id: encounterId,
+        id: id,
         id_scheme: "Project",
         id_namespace: "Project",
       },
@@ -213,19 +203,19 @@ export default function Form() {
       ></mb-input-multiple> */}
       </div>
 
-      <mb-input-multiple
+      <mb-input
         path="health.ocr.v0/reason_for_encounter/presenting_problem"
         label="Presenting problem"
-      ></mb-input-multiple>
-      <mb-input-multiple
+      ></mb-input>
+      <mb-input
         path="health.ocr.v0/story_history/any_event:0/story"
         label="Story/History"
-      ></mb-input-multiple>
+      ></mb-input>
       <mb-input
         path="health.ocr.v0/physical_examination_findings/any_event:0/description"
         label="Description/Findings"
       ></mb-input>
-      <div class="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
       <mb-input
         path="health.ocr.v0/problem_diagnosis:0/problem_diagnosis_name"
         label="Problem/Diagnosis name"
@@ -479,6 +469,19 @@ export default function Form() {
             </sl-button>
           </mb-submit>
       </div>
+      {/* <button type="button" class="bg-gray-800 text-white rounded-r-md py-2 border-l border-gray-200 hover:bg-red-700 hover:text-white px-3 w-28 align-right"> */}
+<div class="flex justify-end">
+  <a href={`/analytics/${id}`}>
+  <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r w-28">
+    <div class="flex items-center">
+      <span class="mr-2">Next</span>
+      <svg class="w-5 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+      </svg>
+    </div>
+  </button>
+  </a>
+</div>
       </mb-form>
     </div>
   );

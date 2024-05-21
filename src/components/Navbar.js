@@ -13,7 +13,7 @@ const user = {
 const navigation = [
     { name: 'Dashboard', href: '/', current: true },
     { name: 'FileUpload', href: '/upload', current: false },
-    { name: 'Analytics', href: '/analytics', current: false },
+    // { name: 'Analytics', href: '/analytics', current: false },
     { name: 'About', href: '/about', current: false },
   ];
   
@@ -59,7 +59,7 @@ export default function Navbar({ handleSignout }) {
                         <img
                           className="h-8 w-10"
                           src="logo-white Background Removed.png"
-                          alt="Your Company"
+                          alt="HealthOCR Logo"
                         />
                       </div>
                       <div className="hidden md:block">

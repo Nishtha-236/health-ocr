@@ -37,7 +37,7 @@ const AppContent = () => {
         <Route path="/signup" element={<SignUp setToken={setToken} />} />
         <Route path="/about" element={<AboutUs />} />
         <Route
-          path="/form"
+          path="/form/:id"
           element={
             <ProtectedRoute>
               <Form />
@@ -53,7 +53,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/analytics"
+          path="/analytics/:id"
           element={
             <ProtectedRoute>
               <Analytics />

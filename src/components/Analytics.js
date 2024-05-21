@@ -1,217 +1,278 @@
-import './analytics.css';
+import "./analytics.css";
 // import Chart from 'chart.js/auto';
 
 import React from "react";
-import { useEffect, useRef } from 'react';
-import { Chart, registerables } from 'chart.js';
-import 'chartjs-adapter-date-fns';
+import { useEffect, useRef, useState } from "react";
+import { Chart, registerables } from "chart.js";
+import { allCompositions, doAql, getComposition, getUID } from "./api";
+import "chartjs-adapter-date-fns";
+import { useParams } from "react-router-dom";
+import moment from "moment";
 Chart.register(...registerables);
 
 export default function Analytics() {
-    const bloodPressureChartContainer = useRef(null);
-    const pulseRateChartContainer = useRef(null);
+  const bloodPressureChartContainer = useRef(null);
+  const pulseRateChartContainer = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const { id } = useParams();
+  const toggleAccordion = () => {
+    setIsOpen(!isOpen);
+  };
+//   const compositionsArray = [];
+const [compositionsArray, setCompositionsArray] = useState([]);
 
     useEffect(() => {
-        // Blood Pressure Chart
-        if (bloodPressureChartContainer && bloodPressureChartContainer.current) {
-            const ctx = bloodPressureChartContainer.current.getContext('2d');
+    // Blood Pressure Chart
+    if (bloodPressureChartContainer && bloodPressureChartContainer.current) {
+      const ctx = bloodPressureChartContainer.current.getContext("2d");
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['29th April 2024, 1:30 PM'],
-                    datasets: [{
-                        label: 'Systolic Blood Pressure',
-                        data: [{
-                            x: '29th April 2024, 1:30 PM',
-                            y: 110
-                        }, {
-                            x: '29th April 2024, 1:30 PM',
-                            y: 78
-                        }],
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    }]
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["29th April 2024, 1:30 PM"],
+          datasets: [
+            {
+              label: "Systolic Blood Pressure",
+              data: [
+                {
+                  x: "29th April 2024, 1:30 PM",
+                  y: 110,
                 },
-                options: {
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                parser: 'dd/MM/YYYY, h:mm A',
-                                tooltipFormat: 'lll',
-                                unit: 'day',
-                                displayFormats: {
-                                    day: 'DD MMM YYYY'
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Blood Pressure'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        // Pulse Rate Chart
-        if (pulseRateChartContainer && pulseRateChartContainer.current) {
-            const ctx = pulseRateChartContainer.current.getContext('2d');
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['29th April 2024, 1:30 PM'],
-                    datasets: [{
-                        label: 'Pulse Rate',
-                        data: [{
-                            x: '29th April 2024, 1:30 PM',
-                            y: 89
-                        }],
-                        borderColor: 'rgb(255, 99, 132)',
-                        tension: 0.1
-                    }]
+                {
+                  x: "29th April 2024, 1:30 PM",
+                  y: 78,
                 },
-                options: {
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                parser: 'dd/MM/YYYY, h:mm A',
-                                tooltipFormat: 'lll',
-                                unit: 'day',
-                                displayFormats: {
-                                    day: 'DD MMM YYYY'
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Pulse Rate'
-                            }
-                        }
-                    }
-                }
-            });
+              ],
+              borderColor: "rgb(75, 192, 192)",
+              tension: 0.1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                parser: "dd/MM/YYYY, h:mm A",
+                tooltipFormat: "lll",
+                unit: "day",
+                displayFormats: {
+                  day: "DD MMM YYYY",
+                },
+              },
+              title: {
+                display: true,
+                text: "Date",
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: "Blood Pressure",
+              },
+            },
+          },
+        },
+      });
+    }
+    // Pulse Rate Chart
+    if (pulseRateChartContainer && pulseRateChartContainer.current) {
+      const ctx = pulseRateChartContainer.current.getContext("2d");
+
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["29th April 2024, 1:30 PM"],
+          datasets: [
+            {
+              label: "Pulse Rate",
+              data: [
+                {
+                  x: "29th April 2024, 1:30 PM",
+                  y: 89,
+                },
+              ],
+              borderColor: "rgb(255, 99, 132)",
+              tension: 0.1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                parser: "dd/MM/YYYY, h:mm A",
+                tooltipFormat: "lll",
+                unit: "day",
+                displayFormats: {
+                  day: "DD MMM YYYY",
+                },
+              },
+              title: {
+                display: true,
+                text: "Date",
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: "Pulse Rate",
+              },
+            },
+          },
+        },
+      });
+    }
+  
+    const fetchCompositions = async () => {
+        try {
+          const res = await doAql(allCompositions(id));
+          const compositionPromises = res.map(async (item) => {
+            const compositionId = getUID(item.get("uid"));
+            const composition = await getComposition(compositionId);
+            return composition["composition"];
+          });
+  
+          const compositions = await Promise.all(compositionPromises);
+          setCompositionsArray(compositions); // Update state with the compositions
+  
+          console.log("Composition data:", compositions);
+          console.log("Number of compositions:", compositions.length);
+        } catch (error) {
+          console.error("Error retrieving compositions:", error);
         }
-    }, []);
-
-    return(
-        <>
-        <section class="top">
-        <div class="top-1">
-            <h2>Diagnosis</h2>
+      };
+  
+      fetchCompositions();
+    }, []); // Ensure the useEffect runs only once
+  
+    const extractVitals = (composition) => {
+        const vitals = {
+            pulse: composition["health.ocr.v0/pulse_heart_beat/rate|magnitude"] + composition["health.ocr.v0/pulse_heart_beat/rate|unit"],
+            bloodPressure: `${composition["health.ocr.v0/blood_pressure/systolic|magnitude"]}/${composition["health.ocr.v0/blood_pressure/diastolic|magnitude"]} ${composition["health.ocr.v0/blood_pressure/systolic|unit"]}`,
+            respiration: composition["health.ocr.v0/respiration/rate|magnitude"] + composition["health.ocr.v0/respiration/rate|unit"],
+            height: composition["health.ocr.v0/height_length/height_length|magnitude"] + composition["health.ocr.v0/height_length/height_length|unit"],
+            weight: composition["health.ocr.v0/body_weight/weight|magnitude"] + composition["health.ocr.v0/body_weight/weight|unit"],
+            BMI: composition["health.ocr.v0/body_mass_index/body_mass_index|magnitude"] + composition["health.ocr.v0/body_mass_index/body_mass_index|unit"],
+            temperature: composition["health.ocr.v0/body_temperature/temperature|magnitude"] + "°" + composition["health.ocr.v0/body_temperature/temperature|unit"]
+          };
+        return vitals;
+        }
+  return (
+    <>
+      <section className="top"> 
+        <div className="top-1">
+          <h2>Diagnosis</h2>
         </div>
-        <div class="top-2">
-            <div class="top2-sp sp1">
-                <h4>Date</h4>
-                <p class="sp1-date">24/05/12</p>
-            </div>
-            <div class="top2-sp sp2">
-                <h4 class="sp2-h1">Diagnosis</h4>
-                <h5>Fever(finding)</h5>
-            </div>
+        <div className="top-2">
+          <div className="top2-sp sp1">
+            <h4>Date</h4>
+            <p className="sp1-date">24/05/12</p>
+          </div>
+          <div className="top2-sp sp2">
+            <h4 className="sp2-h1">Diagnosis</h4>
+            <h5>Fever(finding)</h5>
+          </div>
         </div>
-    </section>
+      </section>
 
-    <section className="bottom">
-                <div className="b-left">
-                    <h3 className="bsp-h blh1">Blood Pressure</h3>
-                    <canvas ref={bloodPressureChartContainer}></canvas>
+      <section className="bottom">
+        <div className="b-left">
+          <h3 className="bsp-h blh1">Blood Pressure</h3>
+          <canvas ref={bloodPressureChartContainer}></canvas>
+        </div>
+        <div className="b-right">
+          <h3 className="bsp-h brh1">Pulse Rate</h3>
+          <canvas ref={pulseRateChartContainer}></canvas>
+        </div>
+      </section>
+
+      <section className="bottom">
+        <div className="b-left">
+          <h3 className="bsp-h blh1">Blood Pressure</h3>
+          {/* <div className="bl-rec">No past record</div>  */}
+        </div>
+        <div className="b-right">
+          <h3 className="bsp-h brh1">Pulse Rate</h3>
+          <div></div>
+        </div>
+      </section>
+
+    <section className="form-history pr-8">
+    <div className=" text-xl font-bold w-1/2">Past Encounters</div>
+      {compositionsArray.map((item, index) => (
+        <div>
+          <div className="fd fd1 border rounded-lg shadow-sm mt-4">
+          <div className="information">
+          </div>
+            <div className="information p-4">
+              <h3 className="text-lg font-semibold">
+                {moment(item["health.ocr.v0/context/start_time"]).format('Do MMMM YYYY, h:mm A')}
+              {/* 29th April 2024, 1:30 PM */}
+              </h3>
+              <p>Presenting Problem - {item["health.ocr.v0/reason_for_encounter/presenting_problem:0"]}</p>
+              <p>Diagnosis - {item["health.ocr.v0/problem_diagnosis:0/problem_diagnosis_name"]}</p>
+            </div>
+            <button
+              id="expandBtn"
+              onClick={toggleAccordion}
+              className="flex items-center justify-center py-2 bg-gray-200 hover:bg-gray-300 rounded-b-lg"
+            >
+              <svg
+                className={`w-4 h-4 transform transition-transform ${
+                  isOpen ? "rotate-180" : "rotate-0"
+                }`}
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 10 6"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m1 1 4 4 4-4"
+                />
+              </svg>
+            </button>
+            {isOpen && (
+              <div id="medicalForm" className="form-container p-4 border-t">
+                {/* <p className="mf-heading font-semibold">Visit Reason</p>
+                <p className="mf-h1-text mb-2">{item.visitReason}</p> */}
+                <p className="mf-heading font-semibold">Vitals</p>
+                <div className="mf-fields-info grid grid-cols-2 gap-4">
+                <div>
+                    <p>Pulse: {item["health.ocr.v0/pulse_heart_beat/rate|magnitude"]}{item["health.ocr.v0/pulse_heart_beat/rate|unit"]}</p>
                 </div>
-                <div className="b-right">
-                    <h3 className="bsp-h brh1">Pulse Rate</h3>
-                    <canvas ref={pulseRateChartContainer}></canvas>
+                <div>
+                    <p>Blood Pressure: {item["health.ocr.v0/blood_pressure/systolic|magnitude"]}/{item["health.ocr.v0/blood_pressure/diastolic|magnitude"]} {item["health.ocr.v0/blood_pressure/systolic|unit"]}</p>
                 </div>
-            </section>
-
-
-    <section class="bottom">
-        <div class="b-left">
-            <h3 class="bsp-h blh1">Blood Pressure</h3>
-            {/* <div class="bl-rec">No past record</div> */}
-        </div>
-        <div class="b-right">
-            <h3 class="bsp-h brh1">Pulse Rate</h3>
-            <div></div>
-        </div>
-    </section>
-
-    <section class="form-history">
-        <div class="f-head">Past Encounters</div>
-        <div class="fd fd1">
-            <div class="information">
-                <h3>29th April 2024, 1:30 PM</h3>
-                <p>CC</p>
-                <p>Dx</p>
-            </div>
-            <button id="expandBtn" onclick="toggleForm()">▼</button>
-            <div id="medicalForm" class="form-container">
-                <p class="mf-heading">Visit Reason</p>
-                <p class="mf-h1-text">test pdf, fever, headache</p>
-                <p class="mf-heading">Vitals</p>
-                <div class="mf-fields-info">
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">Pulse Rate</label>
-                        <span>89 /min</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">SpO2</label>
-                        <span>99%</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">Temperature</label>
-                        <span>89 deg</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">Systolic BP</label>
-                        <span>110 mm</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">Diastolic BP</label>
-                        <span>78 mm</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">Respiratory Rate</label>
-                        <span>17 /min</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">Height</label>
-                        <span>167 cm</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">Weight</label>
-                        <span>6 kg</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">Body Mass Index</label>
-                        <span>--</span>
-                    </div>
-                    <div class="mf-fields">
-                        <label for="vitalsinfo">CRT</label>
-                        <span>18 s</span>
-                    </div>
+                <div>
+                    <p>Respiration: {item["health.ocr.v0/respiration/rate|magnitude"]}{item["health.ocr.v0/respiration/rate|unit"]}</p>
                 </div>
-            </div>
-        </div>
-        <div id="fd fd2">
-
-        </div>
-        <div id="fd fd3">
-
-        </div>
-    </section>
+                <div>
+                    <p>Height: {item["health.ocr.v0/height_length/height_length|magnitude"]}{item["health.ocr.v0/height_length/height_length|unit"]}</p>
+                </div>
+                <div>
+                    <p>Weight: {item["health.ocr.v0/body_weight/weight|magnitude"]}{item["health.ocr.v0/body_weight/weight|unit"]}</p>
+                </div>
+                <div>
+                    <p>BMI: {item["health.ocr.v0/body_mass_index/body_mass_index|magnitude"]}{item["health.ocr.v0/body_mass_index/body_mass_index|unit"]}</p>
+                </div>
+                <div>
+                    <p>Temperature: {item["health.ocr.v0/body_temperature/temperature|magnitude"]}°{item["health.ocr.v0/body_temperature/temperature|unit"]}</p>
+                </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* <div id="fd fd2"></div>
+          <div id="fd fd3"></div> */}
+          </div>
+      ))}
+      </section>
     </>
-    )
+  );
 }
