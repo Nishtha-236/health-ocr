@@ -54,7 +54,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/analytics/:id"
+          path="/Analytics"
           element={
             <ProtectedRoute>
               <Analytics />

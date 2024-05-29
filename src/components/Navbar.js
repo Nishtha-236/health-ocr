@@ -13,7 +13,7 @@ const user = {
 const navigation = [
     { name: 'Dashboard', href: '/', current: true },
     { name: 'FileUpload', href: '/upload', current: false },
-    // { name: 'Analytics', href: '/analytics', current: false },
+    { name: 'Analytics', href: '/analytics', current: false },
     { name: 'About', href: '/about', current: false },
     { name: 'CreatePatient', href: '/createPatient', current: false },
   ];
