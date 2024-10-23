@@ -1,30 +1,32 @@
-import {React, useState} from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import AboutUs from './components/About';
-import Analytics from './components/Analytics';
-import Dashboard from './components/Dashboard';
-import Form from './components/Form';
-import SignUp from './components/Signup';
-import Login from './components/Login';
-import Navbar from './components/Navbar';
-import FileUpload from './components/FileUpload';
-import ProtectedRoute from './components/ProtectedRoute';
-import CreatePatient from './components/createPatient';
+import { React, useState } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import AboutUs from "./components/About";
+import Analytics from "./components/Analytics";
+import Dashboard from "./components/Dashboard";
+import Form from "./components/Form";
+import SignUp from "./components/Signup";
+import Login from "./components/Login";
+import Navbar from "./components/Navbar";
+import FileUpload from "./components/FileUpload";
+import ProtectedRoute from "./components/ProtectedRoute";
+import CreatePatient from "./components/createPatient";
 
-import { auth } from './firebase';
+import { auth } from "./firebase";
 
 const AppContent = () => {
   const location = useLocation();
   const [token, setToken] = useState(null);
 
   const handleSignout = () => {
-    console.log('Sign out');
+    console.log("Sign out");
     auth.signOut(); // sign out from Firebase
   };
 
   return (
     <>
-      {location.pathname !== '/login' && location.pathname !== '/signup' && <Navbar handleSignout={handleSignout} />}
+      {location.pathname !== "/login" && location.pathname !== "/signup" && (
+        <Navbar handleSignout={handleSignout} />
+      )}
       <Routes>
         <Route
           path="/"
@@ -54,7 +56,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/analytics/:id"
+          path="/Analytics"
           element={
             <ProtectedRoute>
               <Analytics />
@@ -70,10 +72,9 @@ const AppContent = () => {
           }
         />
       </Routes>
-      
     </>
   );
-}
+};
 
 function App() {
   return (
